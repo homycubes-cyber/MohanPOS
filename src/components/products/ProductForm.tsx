@@ -144,7 +144,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
                     />
                     <Button type="button" size="sm" onClick={() => {
                         const random = Math.floor(100000000000 + Math.random() * 900000000000).toString();
-                        setFormData(prev => ({ ...prev, barcode: random }));
+                        setFormData((prev: any) => ({ ...prev, barcode: random }));
                     }}>Generate EAN</Button>
                     <Input
                         label="HSN Code"
