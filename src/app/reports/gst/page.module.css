@@ -1,0 +1,36 @@
+.container {
+    padding: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.title {
+    margin-bottom: 1.5rem;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.dates {
+    display: flex;
+    gap: 1rem;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding-bottom: 2px;
+}
+
+.empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--secondary);
+}

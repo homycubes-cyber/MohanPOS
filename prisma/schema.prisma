@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String // Hashed
+  role      Role     @default(CASHIER)
+  permissions String[] @default([]) // List of allowed modules: "DASHBOARD", "POS", "INVENTORY", "REPORTS", "FINANCE", "SETTINGS"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Invoice[]
+}
+
+enum Role {
+  OWNER
+  MANAGER
+  CASHIER
+  STORE_MANAGER
+  AUDITOR
+  SALESMAN
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  sku         String      @unique
+  barcode     String?     @unique
+  hsnCode     String?
+  gstRate     Float       @default(0) // Percentage
+  price       Float
+  costPrice   Float?
+  isActive    Boolean     @default(true)
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  tags        Tag[]
+  inventory   Inventory?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  invoiceItems InvoiceItem[]
+  purchaseItems PurchaseItem[]
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  parentId  String?
+  parent    Category?  @relation("CategoryRecursive", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryRecursive")
+  products  Product[]
+}
+
+model Tag {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Inventory {
+  id        String   @id @default(uuid())
+  productId String   @unique
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(0)
+  lowStockThreshold Int @default(5)
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id          String    @id @default(uuid())
+  name        String
+  phone       String    @unique
+  email       String?
+  address     String?
+  points      Int       @default(0)
+  invoices    Invoice[]
+  creditBalance Float    @default(0) // Khata
+  createdAt   DateTime  @default(now())
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  name      String
+  contact   String?
+  email     String?
+  address   String?
+  gstin     String?
+  createdAt DateTime @default(now())
+  purchases PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id              String        @id @default(uuid())
+  poNumber        String        @unique
+  vendorInvoiceNo String?       // Bill Number from Vendor
+  invoiceUrl      String?       // Uploaded Bill URL/Path
+  vendorId        String
+  vendor          Vendor        @relation(fields: [vendorId], references: [id])
+  status          PurchaseStatus @default(ORDERED)
+  totalAmount     Float
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  items           PurchaseItem[]
+}
+
+enum PurchaseStatus {
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseItem {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id])
+  quantity        Int
+  costPrice       Float
+  total           Float
+}
+
+model Invoice {
+  id          String   @id @default(uuid())
+  invoiceNo   String   @unique // e.g., INV-2024-001
+  createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  totalAmount Float
+  taxAmount   Float
+  discount    Float    @default(0)
+  status      InvoiceStatus @default(COMPLETED)
+  items       InvoiceItem[]
+  payments    Transaction[]
+}
+
+enum InvoiceStatus {
+  DRAFT
+  HELD
+  ESTIMATE
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+model InvoiceItem {
+  id        String  @id @default(uuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float // Price at time of sale
+  tax       Float // Tax amount per item
+  total     Float // (price * quantity) + tax
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Float
+  mode      PaymentMode
+  reference String? // Transaction ID for UPI/Card
+  createdAt DateTime @default(now())
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+  CREDIT
+  B_TRANSFER
+  CHEQUE
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  title       String
+  amount      Float
+  category    String   // Rent, Electricity, Tea, etc.
+  date        DateTime @default(now())
+  description String?
+  userId      String?  // Who recorded it
+  paymentMode PaymentMode @default(CASH)
+  accountId   String? // Linked Bank Account
+  bankAccount BankAccount? @relation(fields: [accountId], references: [id])
+}
+
+model BankAccount {
+  id             String   @id @default(uuid())
+  name           String   // e.g., "HDFC Corp", "SBI Main"
+  accountNumber  String   @unique
+  branch         String?
+  openingBalance Float    @default(0)
+  currentBalance Float    @default(0) // Calculated or manual sync
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expenses       Expense[]
+}
+
+model Cheque {
+  id          String       @id @default(uuid())
+  checkNo     String
+  bankName    String
+  amount      Float
+  partyName   String?      // Who gave it or who we gave it to
+  date        DateTime     // Check Date
+  type        ChequeType   // IN (Received) or OUT (Issued)
+  status      ChequeStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum ChequeType {
+  IN
+  OUT
+}
+
+enum ChequeStatus {
+  PENDING
+  CLEARED
+  BOUNCED
+}
+
+model Loan {
+  id           String            @id @default(uuid())
+  partyName    String            // Person/Bank Name
+  principal    Float
+  interestRate Float?            // Percentage per year
+  startDate    DateTime          @default(now())
+  type         LoanType          // GIVEN (Asset) or TAKEN (Liability)
+  status       LoanStatus        @default(ACTIVE)
+  transactions LoanTransaction[]
+  createdAt    DateTime          @default(now())
+}
+
+enum LoanType {
+  GIVEN
+  TAKEN
+}
+
+enum LoanStatus {
+  ACTIVE
+  CLOSED
+  BAD_DEBT
+}
+
+model LoanTransaction {
+  id        String          @id @default(uuid())
+  loanId    String
+  loan      Loan            @relation(fields: [loanId], references: [id])
+  amount    Float
+  type      LoanTxType      // PAYMENT, INTEREST, PENALTY
+  date      DateTime        @default(now())
+  note      String?
+}
+
+enum LoanTxType {
+  REPAYMENT     // Paying back principal
+  DISBURSEMENT  // Giving more money
+  INTEREST      // Interest accrued/paid
+}
+model StoreProfile {
+  id          String   @id @default(uuid())
+  storeName   String
+  address     String?
+  city        String?
+  pincode     String?
+  phone       String?
+  email       String?
+  gstin       String?
+  website     String?
+  logoUrl     String?  // Optional for future
+  updatedAt   DateTime @updatedAt
+}

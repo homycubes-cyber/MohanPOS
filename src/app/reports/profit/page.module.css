@@ -1,0 +1,59 @@
+.container {
+    padding: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.title {
+    margin-bottom: 1.5rem;
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+}
+
+.dates {
+    display: flex;
+    gap: 1rem;
+}
+
+.actions {
+    padding-bottom: 2px;
+}
+
+.reportGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.summaryCard {
+    text-align: center;
+    padding: 2rem;
+}
+
+.amount {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 1rem 0;
+    color: var(--foreground);
+}
+
+.subtext {
+    font-size: 0.875rem;
+    color: var(--secondary);
+}
+
+.highlight {
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+}
+
+.highlightMajor {
+    border: 2px solid #22c55e;
+    background: #dcfce7;
+    grid-column: 1 / -1;
+}

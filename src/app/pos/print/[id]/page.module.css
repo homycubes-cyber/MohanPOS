@@ -1,0 +1,112 @@
+@media print {
+    @page {
+        margin: 0;
+        size: 80mm auto;
+        /* Target 80mm thermal paper */
+    }
+
+    body {
+        margin: 0;
+        background: white;
+    }
+}
+
+.receipt {
+    width: 80mm;
+    padding: 5mm;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    background: white;
+    margin: 0 auto;
+    color: black;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.header p {
+    margin: 2px 0;
+    font-size: 10px;
+}
+
+.meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    margin-bottom: 5px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px dashed black;
+    margin: 5px 0;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    border-bottom: 1px solid black;
+    font-size: 10px;
+}
+
+.table td {
+    font-size: 10px;
+    padding: 2px 0;
+}
+
+.colItem {
+    width: 60%;
+}
+
+.colQty {
+    width: 20%;
+    text-align: center;
+}
+
+.colPrice {
+    width: 20%;
+    text-align: right;
+}
+
+.table td:nth-child(2) {
+    text-align: center;
+}
+
+.table td:nth-child(3) {
+    text-align: right;
+}
+
+.totals {
+    margin-top: 5px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.grandTotal {
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 5px;
+    border-top: 1px dashed black;
+    padding-top: 5px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 10px;
+}
