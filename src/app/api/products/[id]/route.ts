@@ -1,17 +1,15 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-interface Params {
-    params: {
-        id: string;
-    };
-}
+// Next.js 15: params is now a Promise
+type Params = Promise<{ id: string }>;
 
 // GET /api/products/[id] - Get single product
-export async function GET(request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: { params: Params }) {
+    const { id } = await params;
     try {
         const product = await prisma.product.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 category: true,
                 inventory: true,
@@ -29,7 +27,8 @@ export async function GET(request: Request, { params }: Params) {
 }
 
 // PUT /api/products/[id] - Update product
-export async function PUT(request: Request, { params }: Params) {
+export async function PUT(request: Request, { params }: { params: Params }) {
+    const { id } = await params;
     try {
         const body = await request.json();
         const {
@@ -37,7 +36,7 @@ export async function PUT(request: Request, { params }: Params) {
         } = body;
 
         const product = await prisma.product.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 name,
                 description,
@@ -60,14 +59,15 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 // DELETE /api/products/[id] - Delete product
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: { params: Params }) {
+    const { id } = await params;
     try {
         // Check if product has sales history (Invoices)
         // If yes, we should probably soft delete or prevent deletion. 
         // For now, let's just delete for simplicity as per requirements, but good practice is soft delete.
 
         await prisma.product.delete({
-            where: { id: params.id },
+            where: { id },
         });
 
         return NextResponse.json({ message: 'Product deleted successfully' });
