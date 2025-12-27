@@ -32,11 +32,7 @@ export default function PurchaseOrderPage() {
         }
     }, [search]);
 
-    const fetchLowStock = async () => {
-        const res = await fetch('/api/inventory/low-stock');
-        const data = await res.json();
-        setLowStock(data);
-    };
+
     const fetchVendors = async () => {
         try {
             const res = await fetch('/api/vendors');
