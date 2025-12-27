@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         const finalCatMap = new Map([...existingCatMap, ...newCatMap]);
 
         // 2. Prepare Data for Bulk Insert
-        const products toInsert = [];
+        const toInsert = [];
         const inventoryToInsert = [];
 
         for (const p of products) {

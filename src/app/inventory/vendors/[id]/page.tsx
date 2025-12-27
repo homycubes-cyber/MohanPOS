@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button/Button';
-import styles from '../../purchase/bills/[id]/page.module.css'; // Reusing styles
+import styles from '../../../purchase/bills/[id]/page.module.css'; // Reusing styles
 
 export default function VendorDetailPage() {
     const { id } = useParams();
