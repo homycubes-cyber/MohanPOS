@@ -6,15 +6,18 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     error?: string;
 }
 
-export const Input: React.FC<InputProps> = ({ label, error, className = '', ...props }) => {
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ label, error, className = '', ...props }, ref) => {
     return (
         <div className={styles.container}>
             {label && <label className={styles.label}>{label}</label>}
             <input
+                ref={ref}
                 className={`${styles.input} ${error ? styles.errorInput : ''} ${className}`}
                 {...props}
             />
             {error && <span className={styles.errorMessage}>{error}</span>}
         </div>
     );
-};
+});
+
+Input.displayName = 'Input';
