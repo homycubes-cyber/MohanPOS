@@ -34,7 +34,7 @@ export default function Dashboard() {
           <p>Welcome back, here's what's happening today.</p>
         </div>
         <div className={styles.date}>
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', padding: 'long', day: 'numeric', month: 'long' })}
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
       </div>
 
