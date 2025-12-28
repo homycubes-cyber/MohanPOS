@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Sidebar.module.css';
@@ -117,6 +117,12 @@ export const Sidebar = () => {
             <div className={styles.footer}>
                 <div className={styles.user}>{session?.user?.name || 'User'}</div>
                 <div className={styles.role}>{userRole}</div>
+                <button
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    className={styles.logoutBtn}
+                >
+                    🚪 Logout
+                </button>
             </div>
         </aside>
     );
