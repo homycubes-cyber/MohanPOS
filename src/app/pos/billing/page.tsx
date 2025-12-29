@@ -135,7 +135,10 @@ export default function POSBillingPage() {
     };
 
     const handleSave = async () => {
-        if (cart.length === 0) return;
+        if (cart.length === 0) {
+            alert('Please add items to the cart before saving.');
+            return;
+        }
 
         try {
             const res = await fetch('/api/invoices', {
