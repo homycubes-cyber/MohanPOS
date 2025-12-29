@@ -11,6 +11,7 @@ export default function POSBillingPage() {
         cart,
         addToCart,
         updateQuantity,
+        updatePrice,
         removeFromCart,
         cartTotal,
         cartTax,
@@ -22,38 +23,89 @@ export default function POSBillingPage() {
     const [search, setSearch] = useState('');
     const [products, setProducts] = useState<any[]>([]);
     const [showResults, setShowResults] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState(0);
+
+    // Modals & Inputs
     const searchInputRef = useRef<HTMLInputElement>(null);
+    const [activeModal, setActiveModal] = useState<null | 'PRICE' | 'QTY' | 'DISCOUNT' | 'CUSTOMER'>(null);
+    const [tempValue, setTempValue] = useState('');
+    const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+
+    // Auto-select last item when cart grows (new item added)
+    useEffect(() => {
+        if (cart.length > 0) {
+            setSelectedIndex(cart.length - 1);
+        }
+    }, [cart.length]);
 
     // Keyboard Shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // F1: Focus Search
+            if (activeModal) {
+                if (e.key === 'Escape') setActiveModal(null);
+                return;
+            }
+
+            // Navigation
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSelectedIndex(prev => Math.min(prev + 1, cart.length - 1));
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedIndex(prev => Math.max(prev - 1, 0));
+            }
+
+            // Actions on Selected Item
+            if (e.key === 'Delete' && cart.length > 0) {
+                e.preventDefault();
+                removeFromCart(cart[selectedIndex].productId);
+            }
+            if (e.key.toLowerCase() === 'p' && cart.length > 0) {
+                e.preventDefault();
+                setTempValue(cart[selectedIndex].price.toString());
+                setActiveModal('PRICE');
+            }
+            if (e.key.toLowerCase() === 'q' && cart.length > 0) {
+                e.preventDefault();
+                setTempValue(cart[selectedIndex].quantity.toString());
+                setActiveModal('QTY');
+            }
+
+            // Global Shortcuts
             if (e.key === 'F1') {
                 e.preventDefault();
                 searchInputRef.current?.focus();
             }
-            // F7: Save Bill
+            if (e.key === 'F2') {
+                e.preventDefault();
+                setTempValue(discount.toString());
+                setActiveModal('DISCOUNT');
+            }
             if (e.key === 'F7') {
                 e.preventDefault();
                 handleSave();
             }
-            // Ctrl + Esc: Exit
             if (e.ctrlKey && e.key === 'Escape') {
                 e.preventDefault();
                 router.push('/');
+            }
+            if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+                e.preventDefault();
+                handleHoldBill();
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [router]);
+    }, [cart, selectedIndex, activeModal, discount, router]); // Dep array important for closure access
 
     const handleSearch = async (val: string) => {
         setSearch(val);
         if (val.length > 1) {
             const res = await fetch(`/api/products?search=${val}`);
             const data = await res.json();
-            setProducts(data);
+            setProducts(Array.isArray(data) ? data : []);
             setShowResults(true);
         } else {
             setProducts([]);
@@ -61,11 +113,81 @@ export default function POSBillingPage() {
         }
     };
 
+    const handleAddItem = (product: any) => {
+        addToCart(product);
+        setSearch('');
+        setShowResults(false);
+        searchInputRef.current?.focus();
+    };
+
+    const handleModalSubmit = () => {
+        const val = parseFloat(tempValue);
+        if (isNaN(val)) return;
+
+        if (activeModal === 'PRICE') {
+            updatePrice(cart[selectedIndex].productId, val);
+        } else if (activeModal === 'QTY') {
+            updateQuantity(cart[selectedIndex].productId, val);
+        } else if (activeModal === 'DISCOUNT') {
+            setDiscount(val);
+        }
+        setActiveModal(null);
+    };
+
     const handleSave = async () => {
         if (cart.length === 0) return;
-        // Logic for saving...
-        alert('Bill Saved successfully!');
-        clearCart();
+
+        try {
+            const res = await fetch('/api/invoices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: cart,
+                    totalAmount: cartTotal,
+                    taxAmount: cartTax,
+                    discount,
+                    customerId: selectedCustomer?.id,
+                    paymentMode: 'CASH',
+                    status: 'COMPLETED'
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (confirm('Bill Saved! Print Receipt?')) {
+                    window.open(`/pos/print/${data.id}`, '_blank');
+                }
+                clearCart();
+            } else {
+                alert('Failed to save bill.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error creating invoice');
+        }
+    };
+
+    const handleHoldBill = async () => {
+        if (cart.length === 0) return;
+        try {
+            await fetch('/api/invoices', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: cart,
+                    totalAmount: cartTotal,
+                    taxAmount: cartTax,
+                    discount,
+                    status: 'HELD',
+                    paymentMode: 'CASH'
+                })
+            });
+            alert('Bill Held Successfully!');
+            clearCart();
+        } catch (e) {
+            console.error(e);
+            alert('Failed to hold bill');
+        }
     };
 
     return (
@@ -87,16 +209,38 @@ export default function POSBillingPage() {
                 <div className={`${styles.tab} ${styles.tabActive}`}>
                     Billing Screen 1 <span className={styles.shortcutLabel}>[CTRL + 1]</span> ✕
                 </div>
-                <div className={styles.addTab}>+ Hold Bill & Create Another <span className={styles.shortcutLabel}>[CTRL + B]</span></div>
+                <div className={styles.addTab} onClick={handleHoldBill}>
+                    + Hold Bill & Create Another <span className={styles.shortcutLabel}>[CTRL + B]</span>
+                </div>
             </div>
 
             {/* Toolbar */}
             <div className={styles.toolbar}>
                 <div className={styles.toolGroup}>
-                    <button className={`${styles.toolBtn} ${styles.toolBtnPrimary}`}>+ New Item <span className={styles.shortcutLabel}>[CTRL + I]</span></button>
-                    <button className={styles.toolBtn}>Change Price <span className={styles.shortcutLabel}>[P]</span></button>
-                    <button className={styles.toolBtn}>Change QTY <span className={styles.shortcutLabel}>[Q]</span></button>
-                    <button className={`${styles.toolBtn} ${styles.toolBtnDanger}`}>Delete Item <span className={styles.shortcutLabel}>[DEL]</span></button>
+                    <button className={`${styles.toolBtn} ${styles.toolBtnPrimary}`} onClick={() => searchInputRef.current?.focus()}>
+                        + New Item <span className={styles.shortcutLabel}>[CTRL + I / F1]</span>
+                    </button>
+                    <button className={styles.toolBtn} onClick={() => {
+                        if (cart.length > 0) {
+                            setTempValue(cart[selectedIndex].price.toString());
+                            setActiveModal('PRICE');
+                        }
+                    }}>
+                        Change Price <span className={styles.shortcutLabel}>[P]</span>
+                    </button>
+                    <button className={styles.toolBtn} onClick={() => {
+                        if (cart.length > 0) {
+                            setTempValue(cart[selectedIndex].quantity.toString());
+                            setActiveModal('QTY');
+                        }
+                    }}>
+                        Change QTY <span className={styles.shortcutLabel}>[Q]</span>
+                    </button>
+                    <button className={`${styles.toolBtn} ${styles.toolBtnDanger}`} onClick={() => {
+                        if (cart.length > 0) removeFromCart(cart[selectedIndex].productId);
+                    }}>
+                        Delete Item <span className={styles.shortcutLabel}>[DEL]</span>
+                    </button>
                 </div>
             </div>
 
@@ -112,17 +256,18 @@ export default function POSBillingPage() {
                         placeholder="Search by Item/ Serial no./ HSN code/ SKU/ Custom Field / Category or Scan Barcode"
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && products.length > 0) {
+                                handleAddItem(products[0]);
+                            }
+                        }}
                     />
                     <span className={styles.f1Label}>F1</span>
 
                     {showResults && products.length > 0 && (
                         <div className={styles.searchResults}>
                             {products.map(p => (
-                                <div key={p.id} className={styles.searchItem} onClick={() => {
-                                    addToCart(p);
-                                    setSearch('');
-                                    setShowResults(false);
-                                }}>
+                                <div key={p.id} className={styles.searchItem} onClick={() => handleAddItem(p)}>
                                     <div className={styles.searchItemName}>{p.name}</div>
                                     <div className={styles.searchItemMeta}>SKU: {p.sku} | Price: ₹{p.price}</div>
                                 </div>
@@ -160,20 +305,17 @@ export default function POSBillingPage() {
                                 </thead>
                                 <tbody>
                                     {cart.map((item, idx) => (
-                                        <tr key={item.productId}>
+                                        <tr
+                                            key={item.productId}
+                                            style={{ background: idx === selectedIndex ? '#eff6ff' : 'transparent', cursor: 'pointer' }}
+                                            onClick={() => setSelectedIndex(idx)}
+                                        >
                                             <td>{idx + 1}</td>
                                             <td>{item.name}</td>
                                             <td>---</td>
                                             <td>₹{item.price}</td>
                                             <td>₹{item.price}</td>
-                                            <td>
-                                                <input
-                                                    type="number"
-                                                    value={item.quantity}
-                                                    onChange={(e) => updateQuantity(item.productId, Number(e.target.value))}
-                                                    style={{ width: '50px' }}
-                                                />
-                                            </td>
+                                            <td>{item.quantity}</td>
                                             <td>₹{(item.price * item.quantity).toFixed(2)}</td>
                                         </tr>
                                     ))}
@@ -187,8 +329,13 @@ export default function POSBillingPage() {
                 <aside className={styles.sidebar}>
                     <div className={styles.sideCard}>
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <button className={styles.toolBtn} style={{ flex: 1 }}>Add Discount [F2]</button>
-                            <button className={styles.toolBtn} style={{ flex: 1 }}>Add Charge [F3]</button>
+                            <button className={styles.toolBtn} style={{ flex: 1 }} onClick={() => {
+                                setTempValue(discount.toString());
+                                setActiveModal('DISCOUNT');
+                            }}>
+                                Add Discount [F2]
+                            </button>
+                            <button className={styles.toolBtn} style={{ flex: 1 }} onClick={() => alert('Feature coming soon')}>Add Charge [F3]</button>
                         </div>
 
                         <div className={styles.billDetails}>
@@ -200,6 +347,10 @@ export default function POSBillingPage() {
                             <div className={styles.row}>
                                 <span>Tax</span>
                                 <span>₹{cartTax.toFixed(2)}</span>
+                            </div>
+                            <div className={styles.row}>
+                                <span>Discount</span>
+                                <span>- ₹{discount.toFixed(2)}</span>
                             </div>
                             <div className={styles.totalRow}>
                                 <span>Total Amount</span>
@@ -221,11 +372,6 @@ export default function POSBillingPage() {
                             </div>
                         </div>
                     </div>
-
-                    <div className={styles.sideCard}>
-                        <label>Customer Details <span className={styles.shortcutLabel}>[F5]</span></label>
-                        <div style={{ marginTop: '0.5rem', fontWeight: 600 }}>Cash Sale 📝</div>
-                    </div>
                 </aside>
             </div>
 
@@ -234,6 +380,41 @@ export default function POSBillingPage() {
                 <button className={styles.savePrintBtn} onClick={handleSave}>Save & Print [F6]</button>
                 <button className={styles.saveBtn} onClick={handleSave}>Save Bill [F7]</button>
             </footer>
+
+            {/* Modals */}
+            {activeModal && (
+                <div className={styles.modalOverlay} style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+                }}>
+                    <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', minWidth: '300px' }}>
+                        <h3>
+                            {activeModal === 'PRICE' && 'Change Unit Price'}
+                            {activeModal === 'QTY' && 'Change Quantity'}
+                            {activeModal === 'DISCOUNT' && 'Set Total Discount'}
+                        </h3>
+                        <input
+                            autoFocus
+                            type="number"
+                            value={tempValue}
+                            onChange={e => setTempValue(e.target.value)}
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') handleModalSubmit();
+                            }}
+                            style={{ width: '100%', padding: '0.5rem', margin: '1rem 0', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button onClick={() => setActiveModal(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>Cancel</button>
+                            <button
+                                onClick={handleModalSubmit}
+                                style={{ padding: '0.5rem 1rem', background: '#4338ca', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
