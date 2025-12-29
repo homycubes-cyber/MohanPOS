@@ -40,15 +40,23 @@ export default function RootLayout({
       <body className={inter.className}>
         <NextAuthProvider>
           <CartProvider>
-            <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-              <Sidebar />
-              <main style={{ flex: 1, overflowY: 'auto', background: '#f1f5f9' }}>
-                {children}
-              </main>
-            </div>
+            <LayoutWrapper>{children}</LayoutWrapper>
           </CartProvider>
         </NextAuthProvider>
       </body>
     </html>
   );
 }
+
+// Separate component to use usePathname
+function LayoutWrapper({ children }: { children: React.ReactNode }) {
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  // Since this is a server component by default, we need a client component or a wrapper.
+  // Actually, layout.tsx can't easily use usePathname if it's a server component.
+  // But RootLayout in Next.js 13+ can be a client component if we add 'use client'.
+  // However, metadata requires it to be a server component.
+  // Better approach: Move the layout logic into a client component.
+  return <ClientLayout>{children}</ClientLayout>;
+}
+
+import { ClientLayout } from "@/components/layout/ClientLayout";

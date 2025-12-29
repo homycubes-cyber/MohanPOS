@@ -9,7 +9,7 @@ import styles from './Sidebar.module.css';
 // Define menu structure with potential submenus
 const menuStructure = [
     { label: 'Dashboard', href: '/', icon: '📊', permission: 'DASHBOARD' },
-    { label: 'POS Billing', href: '/pos', icon: '🛒', permission: 'POS' },
+    { label: 'POS Billing', href: '/pos/billing', icon: '🛒', permission: 'POS', target: '_blank' },
     { label: 'Products', href: '/products', icon: '📦', permission: 'INVENTORY' },
     { label: 'Customers', href: '/customers', icon: '👥', permission: 'POS' }, // Customers usually linked to POS
     {
@@ -105,6 +105,7 @@ export const Sidebar = () => {
                         <Link
                             key={item.href}
                             href={item.href}
+                            target={(item as any).target}
                             className={`${styles.link} ${isActive ? styles.active : ''}`}
                         >
                             <span style={{ marginRight: '0.5rem' }}>{item.icon}</span>

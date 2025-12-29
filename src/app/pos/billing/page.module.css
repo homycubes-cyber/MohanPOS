@@ -1,0 +1,359 @@
+.page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+    color: #334155;
+    font-family: inherit;
+}
+
+.header {
+    background: white;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+}
+
+.exitBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #1e293b;
+}
+
+.headerRight {
+    display: flex;
+    gap: 1rem;
+}
+
+.guideBtn,
+.settingsBtn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.guideBtn {
+    color: #2563eb;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+.tabBar {
+    background: white;
+    padding: 0.5rem 1rem 0 1rem;
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tab {
+    padding: 0.6rem 1rem;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.tabActive {
+    background: white;
+    border-color: #e2e8f0;
+    color: #4338ca;
+    border-bottom: 2px solid white;
+    margin-bottom: -1px;
+}
+
+.addTab {
+    padding: 0.6rem 1rem;
+    color: #4338ca;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.toolbar {
+    background: white;
+    padding: 0.75rem 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.toolGroup {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.toolBtn {
+    padding: 0.4rem 0.75rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.toolBtnPrimary {
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.toolBtnDanger {
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.shortcutLabel {
+    color: #94a3b8;
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.searchSection {
+    background: white;
+    padding: 0.5rem 1rem 1rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.categorySelect {
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+    min-width: 120px;
+}
+
+.searchInputWrapper {
+    flex: 1;
+    position: relative;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.f1Label {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+.mainContent {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.billingArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.tableWrapper {
+    flex: 1;
+    background: white;
+    border: 1px solid #f59e0b;
+    /* Orange border from screenshot */
+    border-radius: 4px;
+    overflow: auto;
+    position: relative;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #64748b;
+    text-align: center;
+    gap: 1rem;
+}
+
+.emptyIcon {
+    font-size: 3rem;
+}
+
+.sidebar {
+    width: 350px;
+    background: #f8fafc;
+    border-left: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.sideCard {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.billDetails .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.totalRow {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f0fdf4;
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.amountInputSection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.inputGroup input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.inputGroup select {
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.footer {
+    padding: 1rem;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.savePrintBtn,
+.saveBtn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border: none;
+}
+
+.savePrintBtn {
+    background: white;
+    color: #6366f1;
+    border: 1px solid #6366f1;
+}
+
+.saveBtn {
+    background: #c7d2fe;
+    color: #4338ca;
+}
+
+.itemTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.itemTable th {
+    background: #fffbeb;
+    padding: 0.75rem;
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #92400e;
+    border-bottom: 1px solid #fef3c7;
+}
+
+.itemTable td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+}
+
+.searchResults {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.searchItem {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.searchItem:hover {
+    background: #f1f5f9;
+}
+
+.searchItemName {
+    font-weight: 600;
+}
+
+.searchItemMeta {
+    font-size: 0.75rem;
+    color: #64748b;
+}

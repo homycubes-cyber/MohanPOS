@@ -35,12 +35,18 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 if (isValid) {
+                    // Define default permissions for Cashers if they have none
+                    const defaultCashierPermissions = ['DASHBOARD', 'POS', 'CUSTOMERS', 'INVENTORY'];
+                    const userPermissions = user.permissions && user.permissions.length > 0
+                        ? user.permissions
+                        : (user.role === 'CASHIER' ? defaultCashierPermissions : []);
+
                     return {
                         id: user.id,
                         name: user.name,
                         email: user.email,
                         role: user.role,
-                        permissions: user.permissions // Pass permissions
+                        permissions: userPermissions
                     }
                 }
                 return null
