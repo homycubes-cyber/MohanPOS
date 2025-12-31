@@ -27,7 +27,8 @@ export default function POSBillingPage() {
 
     // Modals & Inputs
     const searchInputRef = useRef<HTMLInputElement>(null);
-    const [activeModal, setActiveModal] = useState<null | 'PRICE' | 'QTY' | 'DISCOUNT' | 'CUSTOMER'>(null);
+    const [activeModal, setActiveModal] = useState<null | 'PRICE' | 'QTY' | 'DISCOUNT' | 'CUSTOMER' | 'ADD_PRODUCT'>(null);
+    const [newProduct, setNewProduct] = useState({ name: '', price: '', sku: '', barcode: '' });
     const [tempValue, setTempValue] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
@@ -94,6 +95,11 @@ export default function POSBillingPage() {
                 e.preventDefault();
                 handleHoldBill();
             }
+            if (e.ctrlKey && e.key.toLowerCase() === 'i') {
+                e.preventDefault();
+                setNewProduct({ name: '', price: '', sku: `SKU-${Date.now()}`, barcode: '' });
+                setActiveModal('ADD_PRODUCT');
+            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -132,6 +138,40 @@ export default function POSBillingPage() {
             setDiscount(val);
         }
         setActiveModal(null);
+    };
+
+    const handleQuickAdd = async () => {
+        if (!newProduct.name || !newProduct.price || !newProduct.sku) {
+            alert('Please fill Name, Price, and SKU');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: newProduct.name,
+                    price: parseFloat(newProduct.price),
+                    sku: newProduct.sku,
+                    barcode: newProduct.barcode,
+                    gstRate: 0,
+                    initialStock: 100
+                })
+            });
+
+            if (res.ok) {
+                const product = await res.json();
+                addToCart(product);
+                setActiveModal(null);
+            } else {
+                const err = await res.json();
+                alert(err.error || 'Failed to add product');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error creating product');
+        }
     };
 
     const handleSave = async () => {
@@ -220,7 +260,10 @@ export default function POSBillingPage() {
             {/* Toolbar */}
             <div className={styles.toolbar}>
                 <div className={styles.toolGroup}>
-                    <button className={`${styles.toolBtn} ${styles.toolBtnPrimary}`} onClick={() => searchInputRef.current?.focus()}>
+                    <button className={`${styles.toolBtn} ${styles.toolBtnPrimary}`} onClick={() => {
+                        setNewProduct({ name: '', price: '', sku: `SKU-${Date.now()}`, barcode: '' });
+                        setActiveModal('ADD_PRODUCT');
+                    }}>
                         + New Item <span className={styles.shortcutLabel}>[CTRL + I / F1]</span>
                     </button>
                     <button className={styles.toolBtn} onClick={() => {
@@ -385,7 +428,7 @@ export default function POSBillingPage() {
             </footer>
 
             {/* Modals */}
-            {activeModal && (
+            {activeModal && activeModal !== 'ADD_PRODUCT' && (
                 <div className={styles.modalOverlay} style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
@@ -413,6 +456,71 @@ export default function POSBillingPage() {
                                 style={{ padding: '0.5rem 1rem', background: '#4338ca', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                             >
                                 Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeModal === 'ADD_PRODUCT' && (
+                <div className={styles.modalOverlay} style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+                }}>
+                    <div style={{ background: 'white', padding: '2rem', borderRadius: '8px', minWidth: '400px' }}>
+                        <h3>Quick Add New Product</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', margin: '1rem 0' }}>
+                            <div>
+                                <label style={{ fontSize: '0.85rem', color: '#64748b' }}>Product Name *</label>
+                                <input
+                                    autoFocus
+                                    className={styles.searchInput}
+                                    placeholder="Enter Product Name"
+                                    value={newProduct.name}
+                                    onChange={e => setNewProduct({ ...newProduct, name: e.target.value })}
+                                />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ fontSize: '0.85rem', color: '#64748b' }}>Price *</label>
+                                    <input
+                                        type="number"
+                                        className={styles.searchInput}
+                                        placeholder="0.00"
+                                        value={newProduct.price}
+                                        onChange={e => setNewProduct({ ...newProduct, price: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.85rem', color: '#64748b' }}>SKU *</label>
+                                    <input
+                                        className={styles.searchInput}
+                                        placeholder="SKU"
+                                        value={newProduct.sku}
+                                        onChange={e => setNewProduct({ ...newProduct, sku: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '0.85rem', color: '#64748b' }}>Barcode (Optional)</label>
+                                <input
+                                    className={styles.searchInput}
+                                    placeholder="Scan or enter barcode"
+                                    value={newProduct.barcode}
+                                    onChange={e => setNewProduct({ ...newProduct, barcode: e.target.value })}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter') handleQuickAdd();
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button onClick={() => setActiveModal(null)} style={{ padding: '0.5rem 1rem', cursor: 'pointer', border: '1px solid #e2e8f0', borderRadius: '4px', background: 'white' }}>Cancel</button>
+                            <button
+                                onClick={handleQuickAdd}
+                                style={{ padding: '0.5rem 1rem', background: '#4338ca', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                            >
+                                Add to Cart & Save
                             </button>
                         </div>
                     </div>
